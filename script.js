@@ -5,12 +5,12 @@ document.addEventListener('DOMContentLoaded', function () {
     tg.expand();
 
     // AJOUTE ce bloc pour connecter les contrôles du téléphone
-if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => { togglePlayPause(); });
-    navigator.mediaSession.setActionHandler('pause', () => { togglePlayPause(); });
-    navigator.mediaSession.setActionHandler('previoustrack', () => { playPrev(); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { playNext(); });
-}
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => { togglePlayPause(); });
+        navigator.mediaSession.setActionHandler('pause', () => { togglePlayPause(); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => { playPrev(); });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { playNext(); });
+    }
 
     // --- DONNÉES MUSICALES ---
     // Remplace ces données par tes propres sons
@@ -112,7 +112,7 @@ if ('mediaSession' in navigator) {
            }).join('');
        }
         */
-       function renderCategories() {
+    function renderCategories() {
         categoryListContainer.innerHTML = musicData.map(category => {
             const extraClass = category.id === 'banger' ? 'full-width' : '';
             return `
@@ -144,8 +144,22 @@ if ('mediaSession' in navigator) {
     }
 
     // --- LOGIQUE DU LECTEUR AUDIO ---
-  /*   function playSound(sound, category) {
-        // Créer la playlist à partir de la catégorie actuelle
+    /*   function playSound(sound, category) {
+          // Créer la playlist à partir de la catégorie actuelle
+          currentPlaylist = category.sounds;
+          currentTrackIndex = currentPlaylist.findIndex(s => s.id === sound.id);
+  
+          currentSound = sound;
+          audio.src = sound.audioSrc;
+          audio.play();
+  
+          // Mettre à jour les deux interfaces (petite barre et pleine page)
+          updateAllPlayerUI(sound);
+      } */
+
+
+    function playSound(sound, category) {
+        // ... (le code existant de la fonction reste le même) ...
         currentPlaylist = category.sounds;
         currentTrackIndex = currentPlaylist.findIndex(s => s.id === sound.id);
 
@@ -155,24 +169,10 @@ if ('mediaSession' in navigator) {
 
         // Mettre à jour les deux interfaces (petite barre et pleine page)
         updateAllPlayerUI(sound);
-    } */
 
-
-function playSound(sound, category) {
-    // ... (le code existant de la fonction reste le même) ...
-    currentPlaylist = category.sounds;
-    currentTrackIndex = currentPlaylist.findIndex(s => s.id === sound.id);
-
-    currentSound = sound;
-    audio.src = sound.audioSrc;
-    audio.play();
-    
-    // Mettre à jour les deux interfaces (petite barre et pleine page)
-    updateAllPlayerUI(sound);
-
-    // AJOUTE CETTE LIGNE pour mettre à jour l'écran de verrouillage
-    updateMediaSession(sound);
-}
+        // AJOUTE CETTE LIGNE pour mettre à jour l'écran de verrouillage
+        updateMediaSession(sound);
+    }
 
 
     function updateAllPlayerUI(sound) {
@@ -191,6 +191,8 @@ function playSound(sound, category) {
     }
 
     function playNext() {
+        // Ligne de sécurité : ne fait rien si la playlist est vide
+        if (currentPlaylist.length === 0) return;
         currentTrackIndex++;
         if (currentTrackIndex >= currentPlaylist.length) {
             currentTrackIndex = 0; // Recommence la playlist
@@ -201,6 +203,8 @@ function playSound(sound, category) {
     }
 
     function playPrev() {
+        // Ligne de sécurité : ne fait rien si la playlist est vide
+        if (currentPlaylist.length === 0) return;
         currentTrackIndex--;
         if (currentTrackIndex < 0) {
             currentTrackIndex = currentPlaylist.length - 1; // Revient à la fin
@@ -294,102 +298,102 @@ function playSound(sound, category) {
             });
         }
     }
-    
+
 
     // --- GESTION DES ÉVÉNEMENTS ------------------------------------------------------------------
-// On utilise un seul écouteur d'événements pour toute l'application
-document.body.addEventListener('click', (e) => {
-    const target = e.target;
+    // On utilise un seul écouteur d'événements pour toute l'application
+    document.body.addEventListener('click', (e) => {
+        const target = e.target;
 
-    // Clic sur une catégorie
-    const categoryCard = target.closest('.category-card');
-    if (categoryCard) {
-        categoryCard.classList.add('clicked');
-        const categoryId = categoryCard.dataset.categoryId;
-        setTimeout(() => {
-            categoryCard.classList.remove('clicked');
-            renderSounds(categoryId);
-        }, 150);
-        return; // On arrête ici pour ne pas déclencher d'autres clics
-    }
+        // Clic sur une catégorie
+        const categoryCard = target.closest('.category-card');
+        if (categoryCard) {
+            categoryCard.classList.add('clicked');
+            const categoryId = categoryCard.dataset.categoryId;
+            setTimeout(() => {
+                categoryCard.classList.remove('clicked');
+                renderSounds(categoryId);
+            }, 150);
+            return; // On arrête ici pour ne pas déclencher d'autres clics
+        }
 
-    // Clic sur un son
-    const soundItem = target.closest('.sound-item');
-    if (soundItem) {
-        const category = musicData.find(c => c.id === soundItem.dataset.categoryId);
-        const sound = category.sounds.find(s => s.id === soundItem.dataset.soundId);
-        if (sound) playSound(sound, category);
-        return;
-    }
-    
-    // Clic sur la barre de lecteur en bas (pour ouvrir la page pleine)
-    const playerBar = target.closest('#audio-player');
-    const playPauseButton = target.closest('#play-pause-btn');
-    if (playerBar && !playPauseButton) { // Ouvre si on clique sur la barre, mais PAS sur le bouton play/pause
-        playerPage.classList.add('visible');
-        return;
-    }
+        // Clic sur un son
+        const soundItem = target.closest('.sound-item');
+        if (soundItem) {
+            const category = musicData.find(c => c.id === soundItem.dataset.categoryId);
+            const sound = category.sounds.find(s => s.id === soundItem.dataset.soundId);
+            if (sound) playSound(sound, category);
+            return;
+        }
 
-    // Clic sur le bouton Play/Pause (petite barre)
-    if (playPauseButton) {
-        togglePlayPause();
-        return;
-    }
+        // Clic sur la barre de lecteur en bas (pour ouvrir la page pleine)
+        const playerBar = target.closest('#audio-player');
+        const playPauseButton = target.closest('#play-pause-btn');
+        if (playerBar && !playPauseButton) { // Ouvre si on clique sur la barre, mais PAS sur le bouton play/pause
+            playerPage.classList.add('visible');
+            return;
+        }
 
-    // Clic sur le bouton Play/Pause (page pleine)
-    if (target.closest('#full-play-pause-btn')) {
-        togglePlayPause();
-        return;
-    }
+        // Clic sur le bouton Play/Pause (petite barre)
+        if (playPauseButton) {
+            togglePlayPause();
+            return;
+        }
 
-    // Clic sur le bouton Précédent
-    if (target.closest('#prev-btn')) {
-        playPrev();
-        return;
-    }
+        // Clic sur le bouton Play/Pause (page pleine)
+        if (target.closest('#full-play-pause-btn')) {
+            togglePlayPause();
+            return;
+        }
 
-    // Clic sur le bouton Suivant
-    if (target.closest('#next-btn')) {
-        playNext();
-        return;
-    }
+        // Clic sur le bouton Précédent
+        if (target.closest('#prev-btn')) {
+            playPrev();
+            return;
+        }
 
-    // Clic sur le bouton pour afficher la playlist
-    if (target.closest('#toggle-playlist-btn')) {
-        renderPlaylist();
-        playlistOverlay.classList.add('visible');
-        return;
-    }
+        // Clic sur le bouton Suivant
+        if (target.closest('#next-btn')) {
+            playNext();
+            return;
+        }
 
-    // Clic pour fermer la playlist (en cliquant sur le fond)
-    if (target === playlistOverlay) {
-        playlistOverlay.classList.remove('visible');
-        return;
-    }
+        // Clic sur le bouton pour afficher la playlist
+        if (target.closest('#toggle-playlist-btn')) {
+            renderPlaylist();
+            playlistOverlay.classList.add('visible');
+            return;
+        }
 
-    // Clic sur le bouton pour fermer la page pleine
-    if (target.closest('#player-close-btn')) {
-        playerPage.classList.remove('visible');
-        return;
-    }
+        // Clic pour fermer la playlist (en cliquant sur le fond)
+        if (target === playlistOverlay) {
+            playlistOverlay.classList.remove('visible');
+            return;
+        }
 
-    // Clic sur le bouton Retour (page des sons)
-    if (target.closest('#back-to-categories')) {
-        showPage('page-categories');
-        return;
-    }
-});
+        // Clic sur le bouton pour fermer la page pleine
+        if (target.closest('#player-close-btn')) {
+            playerPage.classList.remove('visible');
+            return;
+        }
 
-// Événements de l'objet audio qui ne sont pas des clics
-audio.addEventListener('play', updatePlayPauseIcons);
-audio.addEventListener('pause', updatePlayPauseIcons);
-audio.addEventListener('timeupdate', updateProgress);
-audio.addEventListener('ended', playNext); 
-progressContainer.addEventListener('click', setProgress);
-fullProgressContainer.addEventListener('click', setProgress);
+        // Clic sur le bouton Retour (page des sons)
+        if (target.closest('#back-to-categories')) {
+            showPage('page-categories');
+            return;
+        }
+    });
+
+    // Événements de l'objet audio qui ne sont pas des clics
+    audio.addEventListener('play', updatePlayPauseIcons);
+    audio.addEventListener('pause', updatePlayPauseIcons);
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('ended', playNext);
+    progressContainer.addEventListener('click', setProgress);
+    fullProgressContainer.addEventListener('click', setProgress);
 
 
-// --- INITIALISATION ---
-renderCategories();
+    // --- INITIALISATION ---
+    renderCategories();
 });
 
