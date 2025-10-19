@@ -160,6 +160,8 @@ if ('mediaSession' in navigator) {
 
 function playSound(sound, category) {
     // ... (le code existant de la fonction reste le même) ...
+    currentPlaylist = category.sounds;
+    currentTrackIndex = currentPlaylist.findIndex(s => s.id === sound.id);
 
     currentSound = sound;
     audio.src = sound.audioSrc;
@@ -281,22 +283,18 @@ function playSound(sound, category) {
     }
 
     // AJOUTE cette nouvelle fonction
-function updateMediaSession(sound) {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: sound.title,
-            artist: sound.artist,
-            artwork: [
-                { src: sound.coverImage, sizes: '96x96', type: 'image/png' },
-                { src: sound.coverImage, sizes: '128x128', type: 'image/png' },
-                { src: sound.coverImage, sizes: '192x192', type: 'image/png' },
-                { src: sound.coverImage, sizes: '256x256', type: 'image/png' },
-                { src: sound.coverImage, sizes: '384x384', type: 'image/png' },
-                { src: sound.coverImage, sizes: '512x512', type: 'image/png' },
-            ]
-        });
+    function updateMediaSession(sound) {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: sound.title,
+                artist: sound.artist,
+                artwork: [
+                    { src: sound.coverImage, sizes: '512x512', type: 'image/png' },
+                ]
+            });
+        }
     }
-}
+    
 
     // --- GESTION DES ÉVÉNEMENTS ------------------------------------------------------------------
 // On utilise un seul écouteur d'événements pour toute l'application
