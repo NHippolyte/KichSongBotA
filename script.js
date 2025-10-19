@@ -4,6 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
     tg.ready();
     tg.expand();
 
+    // AJOUTE ce bloc pour connecter les contrôles du téléphone
+if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => { togglePlayPause(); });
+    navigator.mediaSession.setActionHandler('pause', () => { togglePlayPause(); });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { playPrev(); });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { playNext(); });
+}
+
     // --- DONNÉES MUSICALES ---
     // Remplace ces données par tes propres sons
     const musicData = [
@@ -136,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- LOGIQUE DU LECTEUR AUDIO ---
-    function playSound(sound, category) {
+  /*   function playSound(sound, category) {
         // Créer la playlist à partir de la catégorie actuelle
         currentPlaylist = category.sounds;
         currentTrackIndex = currentPlaylist.findIndex(s => s.id === sound.id);
@@ -147,7 +155,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Mettre à jour les deux interfaces (petite barre et pleine page)
         updateAllPlayerUI(sound);
-    }
+    } */
+
+
+function playSound(sound, category) {
+    // ... (le code existant de la fonction reste le même) ...
+
+    currentSound = sound;
+    audio.src = sound.audioSrc;
+    audio.play();
+    
+    // Mettre à jour les deux interfaces (petite barre et pleine page)
+    updateAllPlayerUI(sound);
+
+    // AJOUTE CETTE LIGNE pour mettre à jour l'écran de verrouillage
+    updateMediaSession(sound);
+}
+
 
     function updateAllPlayerUI(sound) {
         // Petite barre
@@ -255,6 +279,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const duration = audio.duration;
         audio.currentTime = (clickX / width) * duration;
     }
+
+    // AJOUTE cette nouvelle fonction
+function updateMediaSession(sound) {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: sound.title,
+            artist: sound.artist,
+            artwork: [
+                { src: sound.coverImage, sizes: '96x96', type: 'image/png' },
+                { src: sound.coverImage, sizes: '128x128', type: 'image/png' },
+                { src: sound.coverImage, sizes: '192x192', type: 'image/png' },
+                { src: sound.coverImage, sizes: '256x256', type: 'image/png' },
+                { src: sound.coverImage, sizes: '384x384', type: 'image/png' },
+                { src: sound.coverImage, sizes: '512x512', type: 'image/png' },
+            ]
+        });
+    }
+}
 
     // --- GESTION DES ÉVÉNEMENTS ------------------------------------------------------------------
 // On utilise un seul écouteur d'événements pour toute l'application
